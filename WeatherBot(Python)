@@ -1,0 +1,45 @@
+import requests
+from bs4 import BeautifulSoup as BS
+import telebot
+from telebot import types
+
+
+url = "https://yandex.ru/pogoda/details/10-day-weather?lat=56.129057&lon=40.406635&via=ms#7"
+r = requests.get(url)
+soup = BS(r.content, "html.parser")
+
+weather = soup.find_all("span", class_="a11y-hidden")
+
+day = weather[0].text + "\n"
+weather1 = weather[3].text + "- wind " + weather[4].text + "\n"
+weather2 = weather[6].text + "- wind " + weather[7].text + "\n"
+weather3 = weather[9].text + "- wind " + weather[10].text + "\n"
+weather4 = weather[12].text + "- wind " + weather[13].text + "\n"
+weatherALL = day + weather1 + weather2 + weather3 + weather4
+
+print(day,weather1,weather2,weather3,weather4)
+
+
+token = "YOUR BOT TOKEN!"
+
+bot = telebot.TeleBot(token)
+
+
+
+@bot.message_handler(commands=['start'])
+def start(message):
+      id = message.from_user.id
+      if message.text == "/start":
+            bot.send_message(id, "I will tell you the weather for today!")
+
+
+@bot.message_handler(content_types=['text'])
+def weather(message):
+      id = message.from_user.id
+      btnWeather = types.InlineKeyboardButton("Tell the weather!", callback_data="1")
+      markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+      markup.add(btnWeather)
+      bot.send_message(id, weatherALL, reply_markup=markup)
+
+
+bot.infinity_polling()
